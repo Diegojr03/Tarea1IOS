@@ -19,21 +19,23 @@ class ViewController3: UIViewController, UITableViewDataSource, UITableViewDeleg
             tableView.dataSource = self
             tableView.delegate = self
 
-            // Agregar la puntuación actual antes de reiniciarla
-            if puntuacionActual > 0 {
-                let score = Score(scoreValue: puntuacionActual)
-                scores.append(score)
-            }
+            // Registro de la celda con el identificador "ScoreCell"
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ScoreCell")
 
-            // Ordenar las puntuaciones de mayor a menor
-            scores.sort { $0.scoreValue > $1.scoreValue }
+            // Añadir varias puntuaciones para propósitos de prueba
+            scores.append(Score(scoreValue: 4, date: Date()))
 
-            // Recargar la tabla después de actualizar los datos
-            tableView.reloadData()
+            // Llamar al método para ordenar y recargar la tabla
+            updateTable()
+
+            // Imprimir para verificar si se agregan las puntuaciones
+            print("Puntuaciones actuales: \(scores)")
         }
 
         // Implementar métodos del protocolo UITableViewDataSource
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            // Imprimir para verificar la cantidad de filas en la tabla
+            print("Número de filas en la tabla: \(scores.count)")
             return scores.count
         }
 
@@ -41,8 +43,23 @@ class ViewController3: UIViewController, UITableViewDataSource, UITableViewDeleg
             let cell = tableView.dequeueReusableCell(withIdentifier: "ScoreCell", for: indexPath)
 
             let score = scores[indexPath.row]
-            cell.textLabel?.text = "\(score.scoreValue) puntos"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss" // Puedes ajustar el formato según tus preferencias
+            let dateString = dateFormatter.string(from: score.date)
+
+            cell.textLabel?.text = "\(score.scoreValue) puntos - \(dateString)"
 
             return cell
+        }
+    
+        func updateTable() {
+            // Ordenar las puntuaciones de mayor a menor
+            scores.sort { $0.scoreValue > $1.scoreValue }
+
+            // Recargar la tabla después de actualizar los datos
+            tableView.reloadData()
+
+            // Imprimir para verificar si se ejecuta
+            print("Tabla actualizada. Puntuaciones: \(scores)")
         }
 }

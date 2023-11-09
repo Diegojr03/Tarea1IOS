@@ -22,10 +22,13 @@ class ViewController2: UIViewController {
 
             // Convertir el resultadoJuego a una puntuación actual
             if let resultadoJuego = resultadoJuego {
-                let aciertos = resultadoJuego.components(separatedBy: "/")
+                let aciertos = resultadoJuego.split(separator: "/")
                 if let aciertosNumeric = Int(aciertos.first ?? "") {
                     puntuacionActual = aciertosNumeric
                 }
             }
+            
+            print("Resultado del juego: \(resultadoJuego ?? "N/A")")
+            print("Puntuación actual: \(puntuacionActual)")
         }
 }

@@ -8,10 +8,11 @@
 import Foundation
 
 class Score {
-    
     var scoreValue: Int
+    var date: Date // Nuevo campo para la fecha
 
-    init(scoreValue: Int) {
+    init(scoreValue: Int, date: Date = Date()) {
         self.scoreValue = scoreValue
+        self.date = date
     }
 }
