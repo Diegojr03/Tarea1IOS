@@ -6,36 +6,33 @@
 //
 
 import UIKit
+import Foundation
+    
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
 
 class ViewController: UIViewController {
 
     
         var aciertos: Int = 0
         var totalImagenes: Int = 4
-        // Son las imagenes de los equipos de la NBA en el viewController
+        var imagenEnHueco: [UIView?] = [nil, nil, nil, nil]
+
         @IBOutlet weak var imageView1: UIImageView!
         @IBOutlet weak var imageView2: UIImageView!
         @IBOutlet weak var imageView3: UIImageView!
         @IBOutlet weak var imageView4: UIImageView!
 
-        
         @IBOutlet weak var squareView1: UIView!
         @IBOutlet weak var squareView2: UIView!
         @IBOutlet weak var squareView3: UIView!
         @IBOutlet weak var squareView4: UIView!
 
-        var originalPositions: [CGPoint] = []
-
         override func viewDidLoad() {
             super.viewDidLoad()
-
-            // Guardar las posiciones originales al cargar la vista
-            originalPositions = [
-                imageView1.frame.origin,
-                imageView2.frame.origin,
-                imageView3.frame.origin,
-                imageView4.frame.origin
-            ]
 
             // Configurar la propiedad isUserInteractionEnabled en true
             imageView1.isUserInteractionEnabled = true
@@ -43,36 +40,36 @@ class ViewController: UIViewController {
             imageView3.isUserInteractionEnabled = true
             imageView4.isUserInteractionEnabled = true
 
-            // Agregar gesto de arrastre a cada imagen
-            addTapGesture(to: imageView1, tag: 1)
-            addTapGesture(to: imageView2, tag: 2)
-            addTapGesture(to: imageView3, tag: 3)
-            addTapGesture(to: imageView4, tag: 4)
+            // Agregar reconocimiento de toques a cada imagen
+            addTapGesture(to: imageView1)
+            addTapGesture(to: imageView2)
+            addTapGesture(to: imageView3)
+            addTapGesture(to: imageView4)
         }
 
-    func addTapGesture(to view: UIView, tag: Int) {
+        func addTapGesture(to view: UIView) {
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             view.addGestureRecognizer(tapGesture)
-            view.tag = tag
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let tappedView = gesture.view else { return }
-            moveImageToPosition(tappedView)
+            moveImageToNextPosition(tappedView)
         }
 
-        func moveImageToPosition(_ tappedView: UIView) {
-            guard tappedView.tag <= totalImagenes else { return }
+        func moveImageToNextPosition(_ tappedView: UIView) {
+            guard let index = imagenEnHueco.firstIndex(where: { $0 == nil }) else { return }
 
             let squareView: UIView?
-            switch tappedView.tag {
-                case 1:
+
+            switch index {
+                case 0:
                     squareView = squareView1
-                case 2:
+                case 1:
                     squareView = squareView2
-                case 3:
+                case 2:
                     squareView = squareView3
-                case 4:
+                case 3:
                     squareView = squareView4
                 default:
                     squareView = nil
@@ -83,39 +80,32 @@ class ViewController: UIViewController {
                     tappedView.frame.origin = squareView.frame.origin
                 }
 
+                imagenEnHueco[index] = tappedView
+
                 // Verificar si la imagen está en su posición correcta
                 checkMatchingSquare(for: tappedView)
             }
         }
 
-        func checkMatchingSquare(for imageView: UIView) {
-            let squareView: UIView?
-            switch imageView.tag {
-                case 1:
-                    squareView = squareView1
-                case 2:
-                    squareView = squareView2
-                case 3:
-                    squareView = squareView3
-                case 4:
-                    squareView = squareView4
-                default:
-                    squareView = nil
-            }
+    func checkMatchingSquare(for imageView: UIView) {
+        guard let index = imagenEnHueco.firstIndex(where: { $0 == imageView }) else { return }
 
-            if let squareView = squareView {
-                let imageViewFrameInSquareView = squareView.convert(imageView.frame, from: imageView.superview)
+        let expectedOrder = [imageView1, imageView2, imageView3, imageView4]
 
-                if imageViewFrameInSquareView.intersects(squareView.bounds) {
-                    // Si hay intersección, cuenta como un acierto
-                    aciertos += 1
-                    print("¡Acierto! Nuevo total de aciertos: \(aciertos)")
-                } else {
-                    // La imagen no está en su posición correcta
-                    print("Posición incorrecta")
-                }
-            }
+        if let correctImageView = expectedOrder[index],
+           let currentImageView = imagenEnHueco[index],
+            correctImageView == currentImageView {
+
+            // La imagen está en su posición correcta
+            print("¡Acierto! Nuevo total de aciertos: \(aciertos)")
+            aciertos += 1
+
+        } else {
+            // La imagen no está en su posición correcta
+            print("Posición incorrecta")
         }
+    }
+
 
         @IBAction func PasarPantalla(_ sender: Any) {
             // Utiliza solo performSegue para realizar la transición
@@ -132,23 +122,26 @@ class ViewController: UIViewController {
         }
 
         @IBAction func EmpezarJuego(_ sender: Any) {
-            // Mover las imágenes a posiciones específicas
-            let centerY = view.frame.height / 2 + 100  // Mitad de la pantalla más 100 puntos hacia abajo
-            let positions = [
-                CGPoint(x: 50, y: centerY),
-                CGPoint(x: 120, y: centerY),
-                CGPoint(x: 190, y: centerY),
-                CGPoint(x: 260, y: centerY)
-            ]
+            // Reiniciar la puntuación y mover las imágenes a posiciones específicas
+                aciertos = 0
 
-            let imageViews = [imageView1, imageView2, imageView3, imageView4]
+                let centerY = view.frame.height / 2 + 100
+                let positions = [
+                    CGPoint(x: 190, y: centerY),
+                    CGPoint(x: 100, y: centerY),
+                    CGPoint(x: 20, y: centerY),
+                    CGPoint(x: 280, y: centerY)
+                ]
 
-            for (index, imageView) in imageViews.enumerated() {
-                if let unwrappedImageView = imageView, index < positions.count {
-                    let newPosition = positions[index]
-                    unwrappedImageView.frame.origin = newPosition
-                }
-            }
+                let imageViews = [imageView1, imageView2, imageView3, imageView4]
+
+                for (index, imageView) in imageViews.enumerated() {
+                    if let unwrappedImageView = imageView, index < positions.count {
+                        let newPosition = positions[index]
+                        unwrappedImageView.frame.origin = newPosition
+                        imagenEnHueco[index] = nil
+                        }
+                    }
         }
 }
 
